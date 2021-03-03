@@ -134,7 +134,7 @@ class PreGenerate extends Command {
 			$qb = $this->connection->getQueryBuilder();
 			$row = $qb->select('*')
 				->from('preview_generation')
-				->where($qb->expr()->eq('locked', $qb->createNamedParameter(false)))
+				->where($qb->expr()->eq('locked', $qb->createNamedParameter(0)))
 				->setMaxResults(1)
 				->execute()
 				->fetch();
