@@ -28,9 +28,8 @@ namespace OCA\PreviewGenerator\Migration;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\SimpleMigrationStep;
 use OCP\Migration\IOutput;
-use Doctrine\DBAL\Types\Type;
 
-class Version030101Date20210303121212 extends SimpleMigrationStep {
+class Version020000Date20180823071939 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -57,13 +56,8 @@ class Version030101Date20210303121212 extends SimpleMigrationStep {
 				'notnull' => true,
 				'length' => 4,
 			]);
-			$table->addColumn('locked', Type::BOOLEAN, [
-				'notnull' => true,
-				'default' => 0,
-			]);
 			$table->setPrimaryKey(['id']);
 		}
-		
 		return $schema;
 	}
 }
