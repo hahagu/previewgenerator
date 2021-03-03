@@ -33,6 +33,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\StorageNotAvailableException;
 use OCP\IConfig;
+use OCP\IDBConnection;
 use OCP\IPreview;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -56,6 +57,9 @@ class Generate extends Command {
 	/** @var IConfig */
 	protected $config;
 
+	/** @var IDBConnection */
+	protected $connection;
+
 	/** @var OutputInterface */
 	protected $output;
 
@@ -76,6 +80,7 @@ class Generate extends Command {
 		$this->rootFolder = $rootFolder;
 		$this->previewGenerator = $previewGenerator;
 		$this->config = $config;
+		$this->connection = $connection;
 		$this->encryptionManager = $encryptionManager;
 	}
 
@@ -144,7 +149,7 @@ class Generate extends Command {
 			return;
 		}
 		$pathFolder = $userFolder->get($relativePath);
-		$this->parseFolder($pathFolder);
+		$this->parseFolder($pathFolder, $user);
 	}
 
 	private function generateUserPreviews(IUser $user) {
@@ -152,10 +157,10 @@ class Generate extends Command {
 		\OC_Util::setupFS($user->getUID());
 
 		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-		$this->parseFolder($userFolder);
+		$this->parseFolder($userFolder, $user);
 	}
 
-	private function parseFolder(Folder $folder) {
+	private function parseFolder(Folder $folder, IUser $user) {
 		try {
 			// Respect the '.nomedia' file. If present don't traverse the folder
 			if ($folder->nodeExists('.nomedia')) {
@@ -163,15 +168,26 @@ class Generate extends Command {
 				return;
 			}
 
+			// Sleep to avoid collision
+			usleep(rand(0,50000));
+
 			$this->output->writeln('Scanning folder ' . $folder->getPath());
 
 			$nodes = $folder->getDirectoryListing();
 
 			foreach ($nodes as $node) {
 				if ($node instanceof Folder) {
-					$this->parseFolder($node);
+					$this->parseFolder($node, $user);
 				} elseif ($node instanceof File) {
-					$this->parseFile($node);
+					if (checkProcessing($node) === false ) {
+						try {
+							$this->parseFile($node);
+						} finally {
+							$qb->delete('preview_generation')
+								->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
+								->execute();
+						}
+					}
 				}
 			}
 		} catch (StorageNotAvailableException $e) {
@@ -208,5 +224,42 @@ class Generate extends Command {
 				$this->output->writeln("<error>${error}</error>");
 			}
 		}
+	}
+
+	private function checkProcessing(File $node) {
+		// Lock Variable
+		$is_locked = false;
+
+		// DB Connection
+		$qb = $this->connection->getQueryBuilder();
+		$row = $qb->select('*')
+							->from('preview_generation')
+							->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
+							->setMaxResults(1)
+							->execute()
+							->fetch();
+
+		
+		if ($row !== false) {
+			if ($row['locked'] == 1) {
+				// Lock is Set
+				$is_locked = true;
+			} else {
+				$qb->update('preview_generation')
+					->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
+					->set('locked', $qb->createNamedParameter(true))
+					->execute();
+			}
+		} else {
+			$qb->insert('preview_generation')
+					->values([
+						'uid'     => $qb->createNamedParameter($user->getUID()),
+						'file_id' => $qb->createNamedParameter($node->getId()),
+						'locked'  => $qb->createNamedParameter(true),
+					])
+				->execute();
+		}
+
+		return $is_locked;
 	}
 }

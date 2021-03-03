@@ -29,7 +29,7 @@ use OCP\DB\ISchemaWrapper;
 use OCP\Migration\SimpleMigrationStep;
 use OCP\Migration\IOutput;
 
-class Version020000Date20180823071939 extends SimpleMigrationStep {
+class Version030200Date20210303132100 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -57,6 +57,14 @@ class Version020000Date20180823071939 extends SimpleMigrationStep {
 				'length' => 4,
 			]);
 			$table->setPrimaryKey(['id']);
+		} else {
+			$table = $schema->getTable('preview_generation');
+			if (!$table->hasColumn('locked')) {
+				$table->addColumn('locked', Type::BOOLEAN, [
+					'notnull' => true,
+					'default' => 0,
+				]);
+			}
 		}
 		return $schema;
 	}

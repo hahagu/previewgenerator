@@ -115,13 +115,6 @@ class PreGenerate extends Command {
 			return 1;
 		}
 
-		if ($this->checkAlreadyRunning()) {
-			$output->writeln('Command is already running.');
-			return 2;
-		}
-
-		$this->setPID();
-
 		// Set timestamp output
 		$formatter = new TimestampFormatter($this->config, $output->getFormatter());
 		$output->setFormatter($formatter);
@@ -130,37 +123,41 @@ class PreGenerate extends Command {
 		$this->sizes = SizeHelper::calculateSizes($this->config);
 		$this->startProcessing();
 
-		$this->clearPID();
-
 		return 0;
 	}
 
 	private function startProcessing() {
+		// Sleep to avoid collision
+		usleep(rand(0,50000));
+
 		while (true) {
 			$qb = $this->connection->getQueryBuilder();
-			$qb->select('*')
+			$row = $qb->select('*')
 				->from('preview_generation')
-				->orderBy('id')
-				->setMaxResults(1000);
+				->where($qb->expr()->eq('locked', $qb->createNamedParameter(false)))
+				->setMaxResults(1)
+				->execute()
+				->fetch();
 			$cursor = $qb->execute();
 			$rows = $cursor->fetchAll();
 			$cursor->closeCursor();
 
-			if ($rows === []) {
+			if ($row === false) {
 				break;
 			}
-
-			foreach ($rows as $row) {
-				/*
-				 * First delete the row so that if preview generation fails for some reason
-				 * the next run can just continue
-				 */
-				$qb = $this->connection->getQueryBuilder();
-				$qb->delete('preview_generation')
-					->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])));
-				$qb->execute();
-
+			
+			// Set Lock to True
+			$qb->update('preview_generation')
+			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
+			   ->set('locked', $qb->createNamedParameter(true))
+			   ->execute();
+            
+			try {
 				$this->processRow($row);
+			} finally {
+				$qb->delete('preview_generation')
+			    	->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
+					->execute();
 			}
 		}
 	}
@@ -216,40 +213,14 @@ class PreGenerate extends Command {
 				);
 				$this->previewGenerator->generatePreviews($file, $specifications);
 			} catch (NotFoundException $e) {
-				// Maybe log that previews could not be generated?
+				if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_VERBOSE) {
+					$error = $e->getMessage();
+					$this->output->writeln("<error>${error} " . $file->getPath() . " Not Found.</error>");
+				}
 			} catch (\InvalidArgumentException $e) {
 				$error = $e->getMessage();
 				$this->output->writeln("<error>${error}</error>");
 			}
 		}
-	}
-
-	private function setPID() {
-		$this->config->setAppValue($this->appName, 'pid', posix_getpid());
-	}
-
-	private function clearPID() {
-		$this->config->deleteAppValue($this->appName, 'pid');
-	}
-
-	private function getPID() {
-		return (int)$this->config->getAppValue($this->appName, 'pid', -1);
-	}
-
-	private function checkAlreadyRunning() {
-		$pid = $this->getPID();
-
-		// No PID set so just continue
-		if ($pid === -1) {
-			return false;
-		}
-
-		// Get get the gid of non running processes so continue
-		if (posix_getpgid($pid) === false) {
-			return false;
-		}
-
-		// Seems there is already a running process generating previews
-		return true;
 	}
 }
