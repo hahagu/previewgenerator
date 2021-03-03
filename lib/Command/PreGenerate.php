@@ -127,10 +127,16 @@ class PreGenerate extends Command {
 	}
 
 	private function startProcessing() {
+		$output->writeln('Start Processing...');
+
 		// Sleep to avoid collision
 		usleep(rand(0,50000));
 
+		$cnt = 0; //DEBUG
+
 		while (true) {
+			$cnt++; //DEBUG
+			
 			$qb = $this->connection->getQueryBuilder();
 			$row = $qb->select('*')
 				->from('preview_generation')
@@ -143,11 +149,14 @@ class PreGenerate extends Command {
 			$rows = $cursor->fetchAll();
 			$cursor->closeCursor();
 
+			$output->writeln("DEBUG :: ROW: ${row} WHICH IS " . gettype($row)); //DEBUG
+
 			if ($row === false) {
 				break;
 			}
 			
 			// Set Lock to True
+			$output->writeln('DEBUG :: Lock Trigger'); //DEBUG
 			$qb->update('preview_generation')
 			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
 			   ->set('locked', $qb->createNamedParameter(1))
@@ -165,6 +174,7 @@ class PreGenerate extends Command {
 
 	private function processRow($row) {
 		//Get user
+		$output->writeln('DEBUG :: Process Row Trigger'); //DEBUG
 		$user = $this->userManager->get($row['uid']);
 
 		if ($user === null) {
@@ -182,6 +192,7 @@ class PreGenerate extends Command {
 		}
 
 		//Get node
+		$output->writeln('DEBUG :: Get Node'); //DEBUG
 		$nodes = $userRoot->getById($row['file_id']);
 
 		if ($nodes === []) {
@@ -197,7 +208,6 @@ class PreGenerate extends Command {
 	private function processFile(File $file) {
 		if ($this->previewGenerator->isMimeSupported($file->getMimeType())) {
 			if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_VERBOSE) {
-				$this->output->writeln('DEBUG::GeneratePreviews');
 				$this->output->writeln('Generating previews for ' . $file->getPath());
 			}
 
@@ -214,16 +224,16 @@ class PreGenerate extends Command {
 					}, $this->sizes['width'])
 				);
 				$this->previewGenerator->generatePreviews($file, $specifications);
+
 			} catch (NotFoundException $e) {
 				if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_VERBOSE) {
 					$error = $e->getMessage();
-					$this->output->writeln('DEBUG::FileNotFound');
-					//$this->output->writeln("<error>${error} " . $file->getPath() . " Not Found.</error>");
+					$this->output->writeln("<error>${error} " . $file->getPath() . " Not Found.</error>");
 				}
+
 			} catch (\InvalidArgumentException $e) {
 				$error = $e->getMessage();
-				//$this->output->writeln("<error>${error}</error>");
-				$this->output->writeln('DEBUG::InvalidArgumentException');
+				$this->output->writeln("<error>${error}</error>");
 			}
 		}
 	}

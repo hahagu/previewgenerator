@@ -113,7 +113,8 @@ class Generate extends Command {
 		$this->output = $output;
 
 		$this->sizes = SizeHelper::calculateSizes($this->config);
-
+		$output->writeln('Start Processing...');
+		
 		$inputPath = $input->getOption('path');
 		if ($inputPath) {
 			$inputPath = '/' . trim($inputPath, '/');
@@ -194,8 +195,7 @@ class Generate extends Command {
 	private function parseFile(File $file) {
 		if ($this->previewGenerator->isMimeSupported($file->getMimeType())) {
 			if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_VERBOSE) {
-				$this->output->writeln('DEBUG::GeneratePreviews');
-				//$this->output->writeln('Generating previews for ' . $file->getPath());
+				$this->output->writeln('Generating previews for ' . $file->getPath());
 			}
 
 			try {
@@ -215,13 +215,13 @@ class Generate extends Command {
 				// Maybe log that previews could not be generated?
 			} catch (\InvalidArgumentException $e) {
 				$error = $e->getMessage();
-				//$this->output->writeln("<error>${error}</error>");
-				$this->output->writeln('DEBUG::InvalidArgumentException');
+				$this->output->writeln("<error>${error}</error>");
 			}
 		}
 	}
 
 	private function checkProcessingAndParseFile(File $node, IUser $user) {
+		$this->output->writeln('Check ');
 		// Lock Variable
 		$is_locked = false;
 
