@@ -132,7 +132,7 @@ class PreGenerate extends Command {
 		// Sleep to avoid collision
 		usleep(rand(0,50000));
 
-		while (true) {
+		while(true) {
 			$qb = $this->connection->getQueryBuilder();
 			$row = $qb->select('*')
 				->from('preview_generation')
@@ -141,30 +141,20 @@ class PreGenerate extends Command {
 				->execute()
 				->fetch();
 
-			$cursor = $qb->execute();
-			$rows = $cursor->fetchAll();
-			$cursor->closeCursor();
-
-			$row_as_str = $row ? 'true' : 'false';
-			$this->writeDebug("DEBUG :: ROW IS ${row_as_str} WHICH IS " . gettype($row));
-
-			if ($row === true) {
+			if ($row === false) {
 				break;
 			}
-			
-			// Set Lock to True
-			$this->writeDebug('DEBUG :: Lock Trigger');
 			$qb->update('preview_generation')
 			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
 			   ->set('locked', $qb->createNamedParameter(1))
 			   ->execute();
-            
+			
 			try {
 				$this->processRow($row);
 			} finally {
 				$qb->delete('preview_generation')
-			    	->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
-					->execute();
+					->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
+				    ->execute();
 			}
 		}
 	}
@@ -230,12 +220,6 @@ class PreGenerate extends Command {
 				$error = $e->getMessage();
 				$this->output->writeln("<error>${error}</error>");
 			}
-		}
-	}
-
-	private function writeDebug(String $str) {
-		if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_DEBUG) {
-			$this->output->writeln($str);
 		}
 	}
 }
