@@ -143,7 +143,7 @@ class PreGenerate extends Command {
 			$cursor->closeCursor();
 
 			#DEBUG
-			$output->writeln($row);
+			echo($row);
 
 			if ($row === false) {
 				break;

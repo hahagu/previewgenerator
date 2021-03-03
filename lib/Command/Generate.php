@@ -233,7 +233,7 @@ class Generate extends Command {
 							->fetch();
 
 		#DEBUG
-		$output->writeln($row);
+		echo($row);
 
 		
 		if ($row !== false) {
