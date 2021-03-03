@@ -127,7 +127,7 @@ class PreGenerate extends Command {
 	}
 
 	private function startProcessing() {
-		$output->writeln('Start Processing...');
+		$this->output->writeln('Start Processing...');
 
 		// Sleep to avoid collision
 		usleep(rand(0,50000));
@@ -149,14 +149,14 @@ class PreGenerate extends Command {
 			$rows = $cursor->fetchAll();
 			$cursor->closeCursor();
 
-			$output->writeln("DEBUG :: ROW: ${row} WHICH IS " . gettype($row)); //DEBUG
+			$this->output->writeln("DEBUG :: ROW: ${row} WHICH IS " . gettype($row)); //DEBUG
 
 			if ($row === false) {
 				break;
 			}
 			
 			// Set Lock to True
-			$output->writeln('DEBUG :: Lock Trigger'); //DEBUG
+			$this->output->writeln('DEBUG :: Lock Trigger'); //DEBUG
 			$qb->update('preview_generation')
 			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
 			   ->set('locked', $qb->createNamedParameter(1))
@@ -174,7 +174,7 @@ class PreGenerate extends Command {
 
 	private function processRow($row) {
 		//Get user
-		$output->writeln('DEBUG :: Process Row Trigger'); //DEBUG
+		$this->output->writeln('DEBUG :: Process Row Trigger'); //DEBUG
 		$user = $this->userManager->get($row['uid']);
 
 		if ($user === null) {
@@ -192,7 +192,7 @@ class PreGenerate extends Command {
 		}
 
 		//Get node
-		$output->writeln('DEBUG :: Get Node'); //DEBUG
+		$this->output->writeln('DEBUG :: Get Node'); //DEBUG
 		$nodes = $userRoot->getById($row['file_id']);
 
 		if ($nodes === []) {
