@@ -149,7 +149,8 @@ class PreGenerate extends Command {
 			$rows = $cursor->fetchAll();
 			$cursor->closeCursor();
 
-			$this->output->writeln("DEBUG :: ROW: ${row} WHICH IS " . gettype($row)); //DEBUG
+			$row_as_str = $row ? 'true' : 'false';
+			$this->output->writeln("DEBUG :: ROW: ${row_as_str} WHICH IS " . gettype($row)); //DEBUG
 
 			if ($row === false) {
 				break;
