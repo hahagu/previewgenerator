@@ -255,7 +255,7 @@ class Generate extends Command {
 
 		if ($is_locked === false) {
 			try {
-				$this->processFile($node);
+				$this->parseFile($node);
 			} finally {
 				$qb->delete('preview_generation')
 					->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
