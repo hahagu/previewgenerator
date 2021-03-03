@@ -134,7 +134,7 @@ class PreGenerate extends Command {
 			$qb = $this->connection->getQueryBuilder();
 			$row = $qb->select('*')
 				->from('preview_generation')
-				->where($qb->expr()->eq('locked', $qb->createNamedParameter(0)))
+				->where($qb->expr()->eq('locked', $qb->createNamedParameter(false)))
 				->setMaxResults(1)
 				->execute()
 				->fetch();
@@ -142,14 +142,17 @@ class PreGenerate extends Command {
 			$rows = $cursor->fetchAll();
 			$cursor->closeCursor();
 
-			if ($row == 0) {
+			#DEBUG
+			$output->writeln($row);
+
+			if ($row === false) {
 				break;
 			}
 			
 			// Set Lock to True
 			$qb->update('preview_generation')
 			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
-			   ->set('locked', $qb->createNamedParameter(1))
+			   ->set('locked', $qb->createNamedParameter("true"))
 			   ->execute();
             
 			try {
