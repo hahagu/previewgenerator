@@ -243,7 +243,7 @@ class Generate extends Command {
 			} else {
 				$qb->update('preview_generation')
 					->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
-					->set('locked', $qb->createNamedParameter("true"))
+					->set('locked', $qb->createNamedParameter(1))
 					->execute();
 			}
 		} else {
@@ -251,7 +251,7 @@ class Generate extends Command {
 					->values([
 						'uid'     => $qb->createNamedParameter($user->getUID()),
 						'file_id' => $qb->createNamedParameter($node->getId()),
-						'locked'  => $qb->createNamedParameter("true"),
+						'locked'  => $qb->createNamedParameter(1),
 					])
 				->execute();
 		}

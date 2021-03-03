@@ -152,7 +152,7 @@ class PreGenerate extends Command {
 			// Set Lock to True
 			$qb->update('preview_generation')
 			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
-			   ->set('locked', $qb->createNamedParameter("true"))
+			   ->set('locked', $qb->createNamedParameter(1))
 			   ->execute();
             
 			try {
