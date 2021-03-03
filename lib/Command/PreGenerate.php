@@ -234,7 +234,7 @@ class PreGenerate extends Command {
 	}
 
 	private function writeDebug(String $str) {
-		if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_DEBUG) {
+		if ($this->output->getVerbosity() >= OutputInterface::VERBOSITY_DEBUG) {
 			$this->output->writeln($str);
 		}
 	}
