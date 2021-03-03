@@ -73,6 +73,7 @@ class Generate extends Command {
 								IUserManager $userManager,
 								IPreview $previewGenerator,
 								IConfig $config,
+								IDBConnection $connection,
 								IManager $encryptionManager) {
 		parent::__construct();
 
@@ -179,15 +180,7 @@ class Generate extends Command {
 				if ($node instanceof Folder) {
 					$this->parseFolder($node, $user);
 				} elseif ($node instanceof File) {
-					if (checkProcessing($node) === false ) {
-						try {
-							$this->parseFile($node);
-						} finally {
-							$qb->delete('preview_generation')
-								->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
-								->execute();
-						}
-					}
+					$this->checkProcessingAndParseFile($node, $user);
 				}
 			}
 		} catch (StorageNotAvailableException $e) {
@@ -226,7 +219,7 @@ class Generate extends Command {
 		}
 	}
 
-	private function checkProcessing(File $node) {
+	private function checkProcessingAndParseFile(File $node, IUser $user) {
 		// Lock Variable
 		$is_locked = false;
 
@@ -260,6 +253,14 @@ class Generate extends Command {
 				->execute();
 		}
 
-		return $is_locked;
+		if ($is_locked === false) {
+			try {
+				$this->processFile($node);
+			} finally {
+				$qb->delete('preview_generation')
+					->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
+					->execute();
+			}
+		}
 	}
 }

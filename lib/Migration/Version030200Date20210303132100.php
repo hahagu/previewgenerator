@@ -28,6 +28,7 @@ namespace OCA\PreviewGenerator\Migration;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\SimpleMigrationStep;
 use OCP\Migration\IOutput;
+use Doctrine\DBAL\Types\Type;
 
 class Version030200Date20210303132100 extends SimpleMigrationStep {
 
