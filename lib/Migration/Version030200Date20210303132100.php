@@ -56,6 +56,10 @@ class Version030200Date20210303132100 extends SimpleMigrationStep {
 				'notnull' => true,
 				'length' => 4,
 			]);
+			$table->addColumn('locked', Type::BOOLEAN, [
+				'notnull' => true,
+				'default' => 0,
+			]);
 			$table->setPrimaryKey(['id']);
 		} else {
 			$table = $schema->getTable('preview_generation');
