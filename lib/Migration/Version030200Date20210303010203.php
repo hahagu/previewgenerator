@@ -1,10 +1,9 @@
 <?php
-
 declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2016, Roeland Jago Douma <roeland@famdouma.nl>
+ * @copyright Copyleft (c) 2019, Ignacio Nunez <nacho@ownyourbits.com>
  *
- * @author Roeland Jago Douma <roeland@famdouma.nl>
+ * @author Ignacio Nunez <nacho@ownyourbits.com>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -28,8 +27,9 @@ namespace OCA\PreviewGenerator\Migration;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\SimpleMigrationStep;
 use OCP\Migration\IOutput;
+use Doctrine\DBAL\Types\Type;
 
-class Version020000Date20180823071939 extends SimpleMigrationStep {
+class Version030200Date20210303010203 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -57,6 +57,14 @@ class Version020000Date20180823071939 extends SimpleMigrationStep {
 				'length' => 4,
 			]);
 			$table->setPrimaryKey(['id']);
+		} else {
+			$table = $schema->getTable('preview_generation');
+			if (!$table->hasColumn('locked')) {
+				$table->addColumn('locked', Type::BOOLEAN, [
+					'notnull' => true,
+					'default' => 0,
+				]);
+			}
 		}
 		return $schema;
 	}
