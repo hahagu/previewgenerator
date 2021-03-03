@@ -172,7 +172,7 @@ class PreGenerate extends Command {
 				->execute()
 				->fetch();
 
-			if ($row === 0) {
+			if ($row === false) {
 				break;
 			}
 
