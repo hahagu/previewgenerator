@@ -113,7 +113,7 @@ class Generate extends Command {
 		$this->output = $output;
 
 		$this->sizes = SizeHelper::calculateSizes($this->config);
-		$output->writeln('Start Processing...');
+		$output->writeln('Start Processing Media...');
 		
 		$inputPath = $input->getOption('path');
 		if ($inputPath) {
@@ -221,7 +221,6 @@ class Generate extends Command {
 	}
 
 	private function checkProcessingAndParseFile(File $node, IUser $user) {
-		$this->output->writeln('Check ');
 		// Lock Variable
 		$is_locked = false;
 
