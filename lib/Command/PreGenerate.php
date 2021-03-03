@@ -126,48 +126,17 @@ class PreGenerate extends Command {
 		return 0;
 	}
 
-	// private function startProcessing() {
-	// 	$this->output->writeln('Start Processing Media...');
-
-	// 	// Sleep to avoid collision
-	// 	usleep(rand(0,50000));
-
-	// 	while(true) {
-	// 		$qb = $this->connection->getQueryBuilder();
-	// 		$row = $qb->select('*')
-	// 			->from('preview_generation')
-	// 			->where($qb->expr()->eq('locked', $qb->createNamedParameter(0)))
-	// 			->setMaxResults(1)
-	// 			->execute()
-	// 			->fetch();
-
-	// 		if ($row === false) {
-	// 			break;
-	// 		}
-	// 		$qb->update('preview_generation')
-	// 		   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
-	// 		   ->set('locked', $qb->createNamedParameter(1))
-	// 		   ->execute();
-			
-	// 		try {
-	// 			$this->processRow($row);
-	// 		} finally {
-	// 			$qb->delete('preview_generation')
-	// 				->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
-	// 			    ->execute();
-	// 		}
-	// 	}
-	// }
-
 	private function startProcessing() {
-		// random sleep between 0 and 50ms to avoid collision between 2 processes
+		$this->output->writeln('Start Processing Media...');
+
+		// Sleep to avoid collision
 		usleep(rand(0,50000));
 
 		while(true) {
 			$qb = $this->connection->getQueryBuilder();
 			$row = $qb->select('*')
 				->from('preview_generation')
-				->where($qb->expr()->eq('locked', $qb->createNamedParameter(0)))
+				->where($qb->expr()->eq('locked', $qb->createNamedParameter('false')))
 				->setMaxResults(1)
 				->execute()
 				->fetch();
@@ -175,16 +144,16 @@ class PreGenerate extends Command {
 			if ($row === false) {
 				break;
 			}
-
 			$qb->update('preview_generation')
 			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
-			   ->set('locked', $qb->createNamedParameter(1))
+			   ->set('locked', $qb->createNamedParameter('true'))
 			   ->execute();
-                        try {
+			
+			try {
 				$this->processRow($row);
 			} finally {
 				$qb->delete('preview_generation')
-			            ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
+					->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
 				    ->execute();
 			}
 		}
