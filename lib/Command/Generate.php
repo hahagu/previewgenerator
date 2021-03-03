@@ -194,7 +194,8 @@ class Generate extends Command {
 	private function parseFile(File $file) {
 		if ($this->previewGenerator->isMimeSupported($file->getMimeType())) {
 			if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_VERBOSE) {
-				$this->output->writeln('Generating previews for ' . $file->getPath());
+				$this->output->writeln('DEBUG::GeneratePreviews');
+				//$this->output->writeln('Generating previews for ' . $file->getPath());
 			}
 
 			try {
@@ -214,7 +215,8 @@ class Generate extends Command {
 				// Maybe log that previews could not be generated?
 			} catch (\InvalidArgumentException $e) {
 				$error = $e->getMessage();
-				$this->output->writeln("<error>${error}</error>");
+				//$this->output->writeln("<error>${error}</error>");
+				$this->output->writeln('DEBUG::InvalidArgumentException');
 			}
 		}
 	}
@@ -226,15 +228,11 @@ class Generate extends Command {
 		// DB Connection
 		$qb = $this->connection->getQueryBuilder();
 		$row = $qb->select('*')
-							->from('preview_generation')
-							->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
-							->setMaxResults(1)
-							->execute()
-							->fetch();
-
-		#DEBUG
-		echo($row);
-
+					->from('preview_generation')
+					->where($qb->expr()->eq('file_id', $qb->createNamedParameter($node->getId())))
+					->setMaxResults(1)
+					->execute()
+					->fetch();
 		
 		if ($row !== false) {
 			if ($row['locked'] == 1) {

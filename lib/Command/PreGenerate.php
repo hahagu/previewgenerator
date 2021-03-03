@@ -138,12 +138,10 @@ class PreGenerate extends Command {
 				->setMaxResults(1)
 				->execute()
 				->fetch();
+
 			$cursor = $qb->execute();
 			$rows = $cursor->fetchAll();
 			$cursor->closeCursor();
-
-			#DEBUG
-			echo($row);
 
 			if ($row === false) {
 				break;
@@ -199,6 +197,7 @@ class PreGenerate extends Command {
 	private function processFile(File $file) {
 		if ($this->previewGenerator->isMimeSupported($file->getMimeType())) {
 			if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_VERBOSE) {
+				$this->output->writeln('DEBUG::GeneratePreviews');
 				$this->output->writeln('Generating previews for ' . $file->getPath());
 			}
 
@@ -218,11 +217,13 @@ class PreGenerate extends Command {
 			} catch (NotFoundException $e) {
 				if ($this->output->getVerbosity() > OutputInterface::VERBOSITY_VERBOSE) {
 					$error = $e->getMessage();
-					$this->output->writeln("<error>${error} " . $file->getPath() . " Not Found.</error>");
+					$this->output->writeln('DEBUG::FileNotFound');
+					//$this->output->writeln("<error>${error} " . $file->getPath() . " Not Found.</error>");
 				}
 			} catch (\InvalidArgumentException $e) {
 				$error = $e->getMessage();
-				$this->output->writeln("<error>${error}</error>");
+				//$this->output->writeln("<error>${error}</error>");
+				$this->output->writeln('DEBUG::InvalidArgumentException');
 			}
 		}
 	}
