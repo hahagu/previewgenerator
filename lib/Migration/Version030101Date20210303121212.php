@@ -30,7 +30,7 @@ use OCP\Migration\SimpleMigrationStep;
 use OCP\Migration\IOutput;
 use Doctrine\DBAL\Types\Type;
 
-class Version020000Date20180823071939 extends SimpleMigrationStep {
+class Version030101Date20210303121212 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
