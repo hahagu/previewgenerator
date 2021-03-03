@@ -30,7 +30,7 @@ use OCP\Migration\SimpleMigrationStep;
 use OCP\Migration\IOutput;
 use Doctrine\DBAL\Types\Type;
 
-class Version030200Date20210303132100 extends SimpleMigrationStep {
+class Version020000Date20180823071939 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -62,15 +62,8 @@ class Version030200Date20210303132100 extends SimpleMigrationStep {
 				'default' => 0,
 			]);
 			$table->setPrimaryKey(['id']);
-		} else {
-			$table = $schema->getTable('preview_generation');
-			if (!$table->hasColumn('locked')) {
-				$table->addColumn('locked', Type::BOOLEAN, [
-					'notnull' => true,
-					'default' => 0,
-				]);
-			}
 		}
+		
 		return $schema;
 	}
 }
