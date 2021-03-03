@@ -139,11 +139,12 @@ class PreGenerate extends Command {
 				->where($qb->expr()->eq('locked', $qb->createNamedParameter('false')))
 				->setMaxResults(1)
 				->execute()
-				->fetch();
+				->fetch() || true;
 
 			if ($row === false) {
 				break;
 			}
+
 			$qb->update('preview_generation')
 			   ->where($qb->expr()->eq('id', $qb->createNamedParameter($row['id'])))
 			   ->set('locked', $qb->createNamedParameter('true'))
